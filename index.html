@@ -625,6 +625,38 @@
     25% { transform: translateX(-8px); }
     75% { transform: translateX(8px); }
   }
+
+  /* ---------- 더하기 놀이 ---------- */
+  #plus .task {
+    text-align: center;
+    font-size: clamp(18px, 4.6vw, 24px);
+    font-weight: 800;
+    color: #4a3423;
+    padding-bottom: 8px;
+    text-shadow: 0 2px 0 rgba(255,255,255,.5);
+  }
+  #plus .fruitbox {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    gap: clamp(6px, 2vw, 14px);
+    background: rgba(255,255,255,.65);
+    border-radius: 24px;
+    margin: 0 auto 14px;
+    max-width: 560px;
+    width: 100%;
+    padding: 16px;
+    font-size: clamp(34px, 9vw, 54px);
+  }
+  #plus .fruitbox span { animation: popIn .3s backwards; font-weight: 800; color: #4a3423; }
+  #plus .answers {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    padding-bottom: 10px;
+  }
 </style>
 </head>
 <body>
@@ -691,6 +723,11 @@
       <span class="emoji">🏎️</span>
       <span class="name">씽씽 카레이싱</span>
       <span class="best" id="bestRacing"></span>
+    </button>
+    <button class="gamecard" data-game="plus" style="grid-column: span 2">
+      <span class="emoji">🧮</span>
+      <span class="name">더하기 놀이</span>
+      <span class="best" id="bestPlus"></span>
     </button>
   </div>
   <button class="bigbtn" id="trophyBtn">🏆 트로피 방</button>
@@ -797,6 +834,23 @@
     <canvas id="raceCanvas"></canvas>
     <div class="hint" id="raceHint">손가락으로 움직여서 운전해요!<br>다른 차는 피하고 별은 모아 봐 🌟</div>
   </div>
+</div>
+
+<!-- ================= 더하기 놀이 ================= -->
+<div id="plus" class="screen">
+  <div class="topbar">
+    <button class="iconbtn home">🏠</button>
+    <div class="title">🧮 더하기 놀이</div>
+    <div style="width:64px"></div>
+  </div>
+  <div class="hud">
+    <div class="pill" id="plusLevel">레벨 1</div>
+    <div class="pill" id="plusRound">1 / 10 문제</div>
+    <div class="pill" id="plusScore">⭐ 0</div>
+  </div>
+  <div class="task" id="plusTask">더하면 모두 몇 개일까?</div>
+  <div class="fruitbox" id="plusBox"></div>
+  <div class="answers" id="plusAnswers"></div>
 </div>
 
 <!-- ================= 트로피 방 ================= -->
@@ -1036,8 +1090,8 @@ function clearLevel(g, lv) {
 
 /* ---------- 화면 전환 ---------- */
 let current = 'menu';
-const games = { memory: null, mole: null, runner: null, quiz: null, plane: null, bubble: null, puzzle: null, maze: null, odd: null, racing: null }; // start functions (level 인자)
-const stoppers = { memory: null, mole: null, runner: null, quiz: null, plane: null, bubble: null, puzzle: null, maze: null, odd: null, racing: null }; // cleanup functions
+const games = { memory: null, mole: null, runner: null, quiz: null, plane: null, bubble: null, puzzle: null, maze: null, odd: null, racing: null, plus: null }; // start functions (level 인자)
+const stoppers = { memory: null, mole: null, runner: null, quiz: null, plane: null, bubble: null, puzzle: null, maze: null, odd: null, racing: null, plus: null }; // cleanup functions
 function show(id) {
   if (stoppers[current]) { stoppers[current](); }
   document.querySelectorAll('.screen').forEach((s) => s.classList.remove('on'));
@@ -1061,6 +1115,7 @@ const TRO_GAMES = [
   { key: 'maze', emoji: '🐰', name: '미로 탈출', best: null },
   { key: 'odd', emoji: '🔍', name: '틀린 그림 찾기', best: null },
   { key: 'racing', emoji: '🏎️', name: '씽씽 카레이싱', best: 'best:racing' },
+  { key: 'plus', emoji: '🧮', name: '더하기 놀이', best: 'best:plus' },
 ];
 function renderTrophy() {
   const list = $('#troList');
@@ -1095,7 +1150,7 @@ function renderTrophy() {
 $('#trophyBtn').addEventListener('pointerdown', () => { sfx.tap(); show('trophy'); });
 
 /* ---------- 레벨 선택 ---------- */
-const GAME_EMOJI = { memory: '🐘', mole: '🐹', runner: '🦖', quiz: '🍎', plane: '🚀', bubble: '🐲', puzzle: '🧩', maze: '🐰', odd: '🔍', racing: '🏎️' };
+const GAME_EMOJI = { memory: '🐘', mole: '🐹', runner: '🦖', quiz: '🍎', plane: '🚀', bubble: '🐲', puzzle: '🧩', maze: '🐰', odd: '🔍', racing: '🏎️', plus: '🧮' };
 const lvOverlay = $('#lvOverlay');
 function showLevelSelect(g) {
   $('#lvEmoji').textContent = GAME_EMOJI[g];
@@ -1148,6 +1203,7 @@ function refreshBests() {
   set('#bestMaze', 'maze', null, '');
   set('#bestOdd', 'odd', null, '');
   set('#bestRacing', 'racing', 'best:racing', '개');
+  set('#bestPlus', 'plus', 'best:plus', '점');
 }
 refreshBests();
 
@@ -2636,6 +2692,132 @@ window.addEventListener('resize', () => {
     updateHud();
     running = true;
     raf = requestAnimationFrame(loop);
+  };
+})();
+
+/* ============================================================
+   11. 더하기 놀이 (한 자리 수 덧셈)
+============================================================ */
+(function setupPlus() {
+  const TOTAL = 10;
+  const PASS = 7; // 이만큼 맞히면 레벨 클리어
+  const ICON_A = '🎈';
+  const ICON_B = '⭐';
+  // 10레벨: 더하는 수가 점점 커지고, 합이 10을 넘어가면 그림 없이
+  // 숫자식만 보여줘서(레벨 자연스럽게 구체물 → 암산으로 넘어감)
+  const CONF = [
+    { maxA: 3, maxB: 2 },
+    { maxA: 4, maxB: 3 },
+    { maxA: 5, maxB: 4 },
+    { maxA: 6, maxB: 4 },
+    { maxA: 6, maxB: 5 },
+    { maxA: 7, maxB: 6 },
+    { maxA: 8, maxB: 6 },
+    { maxA: 8, maxB: 7 },
+    { maxA: 9, maxB: 8 },
+    { maxA: 9, maxB: 9 },
+  ];
+  let lv = 1, round = 0, score = 0;
+
+  function nextRound() {
+    round++;
+    $('#plusRound').textContent = `${round} / ${TOTAL} 문제`;
+    const conf = CONF[lv - 1];
+    const a = 1 + Math.floor(Math.random() * conf.maxA);
+    const b = 1 + Math.floor(Math.random() * conf.maxB);
+    const sum = a + b;
+    const useObjects = sum <= 10;
+
+    const box = $('#plusBox');
+    box.innerHTML = '';
+    if (useObjects) {
+      $('#plusTask').textContent = '더하면 모두 몇 개일까?';
+      let delay = 0;
+      const addIcon = (em) => {
+        const s = document.createElement('span');
+        s.textContent = em;
+        s.style.animationDelay = delay + 's';
+        delay += 0.06;
+        box.appendChild(s);
+      };
+      for (let i = 0; i < a; i++) addIcon(ICON_A);
+      const plus = document.createElement('span');
+      plus.textContent = '+';
+      box.appendChild(plus);
+      for (let i = 0; i < b; i++) addIcon(ICON_B);
+    } else {
+      $('#plusTask').textContent = '머릿속으로 더해 봐!';
+      const eq = document.createElement('span');
+      eq.textContent = `${a} + ${b} = ?`;
+      box.appendChild(eq);
+    }
+
+    const opts = new Set([sum]);
+    while (opts.size < 3) {
+      const d = sum + (Math.floor(Math.random() * 5) - 2);
+      if (d >= 2 && d <= 18) opts.add(d);
+    }
+    const answers = $('#plusAnswers');
+    answers.innerHTML = '';
+    let answered = false;
+    shuffle([...opts]).forEach((n) => {
+      const btn = document.createElement('button');
+      btn.className = 'numbtn';
+      btn.textContent = n;
+      btn.addEventListener('pointerdown', () => {
+        if (btn.disabled) return;
+        if (n === sum) {
+          if (!answered) { score++; $('#plusScore').textContent = '⭐ ' + score; }
+          answered = true;
+          sfx.good();
+          confetti(8);
+          answers.querySelectorAll('button').forEach((x) => (x.disabled = true));
+          setTimeout(() => {
+            if (round >= TOTAL) finish();
+            else nextRound();
+          }, 700);
+        } else {
+          answered = true; // 틀린 뒤 맞혀도 점수 없음
+          sfx.bad();
+          btn.classList.add('wrong');
+          btn.disabled = true;
+        }
+      });
+      answers.appendChild(btn);
+    });
+  }
+
+  function finish() {
+    const isBest = saveBest('plus', score);
+    const success = score >= PASS;
+    let p = '';
+    if (success) {
+      clearLevel('plus', lv);
+      p = praise();
+      celebrate(p);
+    } else {
+      sfx.bad();
+    }
+    const stars = score >= 9 ? '🌟🌟🌟' : score >= 6 ? '🌟🌟' : '🌟';
+    showOverlay({
+      emoji: success ? (isBest ? '👑' : '🎉') : '🧮',
+      title: success ? p : '조금만 더!',
+      text: success
+        ? `레벨 ${lv} 성공! 10문제 중에 ${score}개를 맞혔어요! ${stars}`
+        : `${score}개 맞혔어요. ${PASS}개 맞히면 성공!`,
+      win: success,
+      onRetry: () => games.plus(lv),
+      onNext: success && lv < MAX_LEVEL ? () => games.plus(lv + 1) : null,
+    });
+  }
+
+  games.plus = function startPlus(level = 1) {
+    lv = level;
+    round = 0;
+    score = 0;
+    $('#plusLevel').textContent = '레벨 ' + level;
+    $('#plusScore').textContent = '⭐ 0';
+    nextRound();
   };
 })();
 
