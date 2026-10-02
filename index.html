@@ -191,57 +191,64 @@
   /* ---------- 메뉴 ---------- */
   #menu .logo {
     text-align: center;
-    padding: 8px 0 4px;
+    padding: 2px 0;
+    flex-shrink: 0;
   }
   #menu .logo h1 {
-    font-size: clamp(30px, 8vw, 46px);
+    font-size: clamp(18px, 5vw, 26px);
     color: #4a3423;
-    text-shadow: 0 3px 0 rgba(255,255,255,.6);
+    text-shadow: 0 2px 0 rgba(255,255,255,.6);
   }
-  #menu .logo p { font-size: clamp(16px, 4vw, 20px); color: #6d5844; margin-top: 4px; }
+  #menu .logo p { font-size: clamp(11px, 2.6vw, 14px); color: #6d5844; margin-top: 2px; }
   #menu .center {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: clamp(10px, 3vh, 28px);
-    overflow-y: auto;
+    gap: clamp(4px, 1vh, 10px);
   }
-  #menu .logo { margin-top: auto; }
-  #menu #trophyBtn { margin-bottom: auto; flex-shrink: 0; }
   #menu .grid {
+    flex: 1;
+    min-height: 0;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    align-content: center;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: 1fr;
+    gap: clamp(5px, 1.3vw, 10px);
     max-width: 560px;
     width: 100%;
     margin: 0 auto;
-    padding: 10px 4px;
   }
   .gamecard {
     border: none;
-    border-radius: 26px;
-    padding: 18px 10px;
+    border-radius: 18px;
+    padding: 4px 4px;
     background: rgba(255,255,255,.92);
-    box-shadow: 0 6px 0 rgba(0,0,0,.13);
+    box-shadow: 0 4px 0 rgba(0,0,0,.13);
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    min-height: 116px;
+    justify-content: center;
+    gap: 2px;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
   }
-  .gamecard:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.13); }
-  .gamecard .emoji { font-size: clamp(44px, 11vw, 60px); }
-  .gamecard .name { font-size: clamp(18px, 4.5vw, 23px); font-weight: 800; color: #4a3423; }
-  .gamecard .best { font-size: clamp(13px, 3.2vw, 16px); font-weight: 700; color: #b8860b; min-height: 1.2em; }
+  .gamecard:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.13); }
+  .gamecard .emoji { font-size: clamp(18px, 6.5vh, 34px); line-height: 1; }
+  .gamecard .name { font-size: clamp(10px, 2.6vh, 14px); font-weight: 800; color: #4a3423; line-height: 1.15; text-align: center; }
+  .gamecard .best { font-size: clamp(8px, 1.8vh, 11px); font-weight: 700; color: #b8860b; min-height: 1em; }
   #trophyBtn {
     display: block;
+    flex-shrink: 0;
     max-width: 560px;
     width: 100%;
+    min-height: 0;
+    padding: 8px 20px;
+    font-size: clamp(15px, 3.6vh, 20px);
     margin: 0 auto;
     background: linear-gradient(135deg, #ffd75e, #f7a934);
-    box-shadow: 0 6px 0 #cf8420;
+    box-shadow: 0 5px 0 #cf8420;
     color: #7a4c00;
   }
   #trophyBtn:active { box-shadow: 0 2px 0 #cf8420; }
@@ -719,12 +726,12 @@
       <span class="name">틀린 그림 찾기</span>
       <span class="best" id="bestOdd"></span>
     </button>
-    <button class="gamecard" data-game="racing" style="grid-column: span 2">
+    <button class="gamecard" data-game="racing">
       <span class="emoji">🏎️</span>
       <span class="name">씽씽 카레이싱</span>
       <span class="best" id="bestRacing"></span>
     </button>
-    <button class="gamecard" data-game="plus" style="grid-column: span 2">
+    <button class="gamecard" data-game="plus">
       <span class="emoji">🧮</span>
       <span class="name">더하기 놀이</span>
       <span class="best" id="bestPlus"></span>
