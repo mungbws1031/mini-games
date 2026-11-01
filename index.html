@@ -63,12 +63,12 @@
     font-size: clamp(20px, 4.5vw, 26px);
     font-weight: 800;
     color: #fff;
-    background: #ff8a3d;
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.45), transparent 55%), #ff8a3d;
     box-shadow: 0 6px 0 #d96a20;
     cursor: pointer;
   }
-  .bigbtn.blue { background: #4f9cf7; box-shadow: 0 6px 0 #2f77d0; }
-  .bigbtn.green { background: #43b649; box-shadow: 0 6px 0 #2f8f35; }
+  .bigbtn.blue { background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.45), transparent 55%), #4f9cf7; box-shadow: 0 6px 0 #2f77d0; }
+  .bigbtn.green { background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.45), transparent 55%), #43b649; box-shadow: 0 6px 0 #2f8f35; }
   .bigbtn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d96a20; }
   .bigbtn.blue:active { box-shadow: 0 2px 0 #2f77d0; }
   .bigbtn.green:active { box-shadow: 0 2px 0 #2f8f35; }
@@ -90,7 +90,7 @@
     font-size: clamp(20px, 5.5vw, 28px);
     font-weight: 800;
     color: #fff;
-    background: #ff8a3d;
+    background: radial-gradient(circle at 30% 22%, rgba(255,255,255,.5), transparent 55%), #ff8a3d;
     box-shadow: 0 5px 0 #d96a20;
     cursor: pointer;
     display: flex;
@@ -218,12 +218,27 @@
     width: 100%;
     margin: 0 auto;
   }
+  /* 게임별 고유 색(hue) — 메뉴 카드·트로피 카드가 같은 순서로 같은 색을 써서
+     두 화면에서 같은 게임을 한눈에 알아볼 수 있게 함(일관성·반복 원리) */
+  .gamecard:nth-child(1), .trocard:nth-child(1) { --hue: 350; }
+  .gamecard:nth-child(2), .trocard:nth-child(2) { --hue: 23; }
+  .gamecard:nth-child(3), .trocard:nth-child(3) { --hue: 55; }
+  .gamecard:nth-child(4), .trocard:nth-child(4) { --hue: 88; }
+  .gamecard:nth-child(5), .trocard:nth-child(5) { --hue: 121; }
+  .gamecard:nth-child(6), .trocard:nth-child(6) { --hue: 158; }
+  .gamecard:nth-child(7), .trocard:nth-child(7) { --hue: 186; }
+  .gamecard:nth-child(8), .trocard:nth-child(8) { --hue: 218; }
+  .gamecard:nth-child(9), .trocard:nth-child(9) { --hue: 251; }
+  .gamecard:nth-child(10), .trocard:nth-child(10) { --hue: 284; }
+  .gamecard:nth-child(11), .trocard:nth-child(11) { --hue: 316; }
   .gamecard {
     border: none;
     border-radius: 18px;
     padding: 4px 4px;
-    background: rgba(255,255,255,.92);
-    box-shadow: 0 4px 0 rgba(0,0,0,.13);
+    background:
+      radial-gradient(circle at 30% 18%, rgba(255,255,255,.7), transparent 55%),
+      hsl(var(--hue, 30), 72%, 92%);
+    box-shadow: 0 4px 0 hsl(var(--hue, 30), 55%, 72%);
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -234,10 +249,10 @@
     min-width: 0;
     overflow: hidden;
   }
-  .gamecard:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.13); }
+  .gamecard:active { transform: translateY(3px); box-shadow: 0 1px 0 hsl(var(--hue, 30), 55%, 72%); }
   .gamecard .emoji { font-size: clamp(18px, 6.5vh, 34px); line-height: 1; }
   .gamecard .name { font-size: clamp(10px, 2.6vh, 14px); font-weight: 800; color: #4a3423; line-height: 1.15; text-align: center; }
-  .gamecard .best { font-size: clamp(8px, 1.8vh, 11px); font-weight: 700; color: #b8860b; min-height: 1em; }
+  .gamecard .best { font-size: clamp(8px, 1.8vh, 11px); font-weight: 700; color: #8a6a00; min-height: 1em; }
   #trophyBtn {
     display: block;
     flex-shrink: 0;
@@ -247,7 +262,7 @@
     padding: 8px 20px;
     font-size: clamp(15px, 3.6vh, 20px);
     margin: 0 auto;
-    background: linear-gradient(135deg, #ffd75e, #f7a934);
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.55), transparent 55%), linear-gradient(135deg, #ffd75e, #f7a934);
     box-shadow: 0 5px 0 #cf8420;
     color: #7a4c00;
   }
@@ -426,12 +441,12 @@
   /* ---------- 트로피 방 ---------- */
   #trophy .body {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 14px;
+    gap: clamp(4px, 1vh, 10px);
   }
-  #trophy .champ { text-align: center; }
+  #trophy .champ { flex-shrink: 0; text-align: center; }
   .champbox {
     max-width: 560px;
     margin: 0 auto;
@@ -446,30 +461,47 @@
   }
   .champbox small { display: block; font-size: clamp(14px, 3.6vw, 18px); margin-top: 4px; }
   #trophy .trolist {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: 1fr;
+    gap: clamp(5px, 1.3vw, 10px);
     max-width: 560px;
     width: 100%;
     margin: 0 auto;
-    padding-bottom: 8px;
   }
   .trocard {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: rgba(255,255,255,.92);
-    border-radius: 22px;
-    padding: 14px 18px;
-    box-shadow: 0 5px 0 rgba(0,0,0,.12);
+    position: relative;
+    border: none;
+    border-radius: 18px;
+    padding: 4px 4px;
+    background:
+      radial-gradient(circle at 30% 18%, rgba(255,255,255,.7), transparent 55%),
+      hsl(var(--hue, 30), 72%, 92%);
+    box-shadow: 0 4px 0 hsl(var(--hue, 30), 55%, 72%);
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
   }
-  .trocard:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,.12); }
-  .trocard .g { font-size: clamp(34px, 9vw, 46px); }
-  .trocard .info { flex: 1; }
-  .trocard .nm { font-weight: 800; font-size: clamp(17px, 4.2vw, 21px); color: #4a3423; }
-  .trocard .lv { font-size: clamp(15px, 3.8vw, 19px); margin-top: 2px; letter-spacing: 2px; color: #7a6753; }
-  .trocard .cup { font-size: clamp(34px, 9vw, 46px); filter: grayscale(1) opacity(.3); }
+  .trocard:active { transform: translateY(3px); box-shadow: 0 1px 0 hsl(var(--hue, 30), 55%, 72%); }
+  .trocard .g { font-size: clamp(18px, 6.5vh, 34px); line-height: 1; }
+  .trocard .nm { font-size: clamp(10px, 2.6vh, 14px); font-weight: 800; color: #4a3423; line-height: 1.15; text-align: center; }
+  .trocard .lv { font-size: clamp(8px, 1.8vh, 11px); font-weight: 700; color: #6d5844; }
+  .trocard .best { font-size: clamp(8px, 1.8vh, 11px); font-weight: 700; color: #8a6a00; }
+  .trocard .cup {
+    position: absolute;
+    top: 3px;
+    right: 5px;
+    font-size: clamp(13px, 3.6vh, 18px);
+    filter: grayscale(1) opacity(.35);
+  }
   .trocard.done .cup { filter: none; animation: matched .6s; }
 
   /* ---------- 카드 짝맞추기 ---------- */
@@ -1132,15 +1164,16 @@ function renderTrophy() {
     const cl = clearedLv(g.key);
     const done = cl >= MAX_LEVEL;
     if (done) cups++;
-    const stars = cl > 0 ? `⭐ ${cl}/${MAX_LEVEL}` : `▫️ 0/${MAX_LEVEL}`;
+    const stars = cl > 0 ? `⭐ ${cl}/${MAX_LEVEL}` : `0/${MAX_LEVEL}`;
     const best = g.best && store.get(g.best);
     const card = document.createElement('div');
     card.className = 'trocard' + (done ? ' done' : '');
     card.innerHTML =
+      `<span class="cup">🏆</span>` +
       `<span class="g">${g.emoji}</span>` +
-      `<div class="info"><div class="nm">${g.name}</div>` +
-      `<div class="lv">${stars}${best ? ` · 👑 ${best}점` : ''}</div></div>` +
-      `<span class="cup">🏆</span>`;
+      `<div class="nm">${g.name}</div>` +
+      `<div class="lv">${stars}</div>` +
+      (best ? `<div class="best">👑 ${best}점</div>` : '');
     card.addEventListener('pointerdown', () => {
       if (done) { sfx.good(); confetti(12); } else { sfx.tap(); }
     });
