@@ -231,6 +231,7 @@
   .gamecard:nth-child(9), .trocard:nth-child(9) { --hue: 251; }
   .gamecard:nth-child(10), .trocard:nth-child(10) { --hue: 284; }
   .gamecard:nth-child(11), .trocard:nth-child(11) { --hue: 316; }
+  .gamecard:nth-child(12), .trocard:nth-child(12) { --hue: 333; }
   .gamecard {
     border: none;
     border-radius: 18px;
@@ -435,6 +436,28 @@
     font-weight: 800;
     color: #fff;
     text-shadow: 0 2px 4px rgba(0,0,0,.5);
+    pointer-events: none;
+  }
+
+  /* ---------- 수박게임 ---------- */
+  #melon .stage {
+    flex: 1;
+    position: relative;
+    border-radius: 22px;
+    overflow: hidden;
+    background: #cfead9;
+    box-shadow: inset 0 0 0 4px rgba(255,255,255,.4);
+    touch-action: none;
+    cursor: pointer;
+  }
+  #melon canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #melon .hint {
+    position: absolute;
+    left: 0; right: 0; top: 34%;
+    text-align: center;
+    font-size: clamp(15px, 4vw, 19px);
+    font-weight: 800;
+    color: #3c5e46;
     pointer-events: none;
   }
 
@@ -768,6 +791,11 @@
       <span class="name">더하기 놀이</span>
       <span class="best" id="bestPlus"></span>
     </button>
+    <button class="gamecard" data-game="melon">
+      <span class="emoji">🍉</span>
+      <span class="name">수박게임</span>
+      <span class="best" id="bestMelon"></span>
+    </button>
   </div>
   <button class="bigbtn" id="trophyBtn">🏆 트로피 방</button>
   </div>
@@ -890,6 +918,24 @@
   <div class="task" id="plusTask">더하면 모두 몇 개일까?</div>
   <div class="fruitbox" id="plusBox"></div>
   <div class="answers" id="plusAnswers"></div>
+</div>
+
+<!-- ================= 수박게임 ================= -->
+<div id="melon" class="screen">
+  <div class="topbar">
+    <button class="iconbtn home">🏠</button>
+    <div class="title">🍉 수박게임</div>
+    <div style="width:64px"></div>
+  </div>
+  <div class="hud">
+    <div class="pill" id="melonLevel">레벨 1</div>
+    <div class="pill" id="melonTarget">🎯 16</div>
+    <div class="pill" id="melonScore">⭐ 0</div>
+  </div>
+  <div class="stage" id="melonStage">
+    <canvas id="melonCanvas"></canvas>
+    <div class="hint" id="melonHint">같은 과일이 부딪히면 합쳐져요!<br>점점 큰 과일을 만들어서 수박까지 만들어 봐 🍉</div>
+  </div>
 </div>
 
 <!-- ================= 트로피 방 ================= -->
@@ -1129,8 +1175,8 @@ function clearLevel(g, lv) {
 
 /* ---------- 화면 전환 ---------- */
 let current = 'menu';
-const games = { memory: null, mole: null, runner: null, quiz: null, plane: null, bubble: null, puzzle: null, maze: null, odd: null, racing: null, plus: null }; // start functions (level 인자)
-const stoppers = { memory: null, mole: null, runner: null, quiz: null, plane: null, bubble: null, puzzle: null, maze: null, odd: null, racing: null, plus: null }; // cleanup functions
+const games = { memory: null, mole: null, runner: null, quiz: null, plane: null, bubble: null, puzzle: null, maze: null, odd: null, racing: null, plus: null, melon: null }; // start functions (level 인자)
+const stoppers = { memory: null, mole: null, runner: null, quiz: null, plane: null, bubble: null, puzzle: null, maze: null, odd: null, racing: null, plus: null, melon: null }; // cleanup functions
 function show(id) {
   if (stoppers[current]) { stoppers[current](); }
   document.querySelectorAll('.screen').forEach((s) => s.classList.remove('on'));
@@ -1155,6 +1201,7 @@ const TRO_GAMES = [
   { key: 'odd', emoji: '🔍', name: '틀린 그림 찾기', best: null },
   { key: 'racing', emoji: '🏎️', name: '씽씽 카레이싱', best: 'best:racing' },
   { key: 'plus', emoji: '🧮', name: '더하기 놀이', best: 'best:plus' },
+  { key: 'melon', emoji: '🍉', name: '수박게임', best: 'best:melon' },
 ];
 function renderTrophy() {
   const list = $('#troList');
@@ -1190,7 +1237,7 @@ function renderTrophy() {
 $('#trophyBtn').addEventListener('pointerdown', () => { sfx.tap(); show('trophy'); });
 
 /* ---------- 레벨 선택 ---------- */
-const GAME_EMOJI = { memory: '🐘', mole: '🐹', runner: '🦖', quiz: '🍎', plane: '🚀', bubble: '🐲', puzzle: '🧩', maze: '🐰', odd: '🔍', racing: '🏎️', plus: '🧮' };
+const GAME_EMOJI = { memory: '🐘', mole: '🐹', runner: '🦖', quiz: '🍎', plane: '🚀', bubble: '🐲', puzzle: '🧩', maze: '🐰', odd: '🔍', racing: '🏎️', plus: '🧮', melon: '🍉' };
 const lvOverlay = $('#lvOverlay');
 function showLevelSelect(g) {
   $('#lvEmoji').textContent = GAME_EMOJI[g];
@@ -1244,6 +1291,7 @@ function refreshBests() {
   set('#bestOdd', 'odd', null, '');
   set('#bestRacing', 'racing', 'best:racing', '개');
   set('#bestPlus', 'plus', 'best:plus', '점');
+  set('#bestMelon', 'melon', 'best:melon', '점');
 }
 refreshBests();
 
@@ -3026,6 +3074,270 @@ window.addEventListener('resize', () => {
     $('#puzLevel').textContent = '레벨 ' + level;
     if (!imgURL) setImage(store.get('puzzleimg') || defaultImage());
     buildBoard();
+  };
+})();
+
+/* ============================================================
+   12. 수박게임 (같은 과일이 부딪히면 합쳐져요! 점점 큰 과일을 만들어 수박까지!)
+============================================================ */
+(function setupMelon() {
+  const stage = $('#melonStage');
+  const canvas = $('#melonCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const TIER_EMOJI = ['🍒', '🍓', '🍇', '🍊', '🍎', '🍉'];
+  const TIER_SCORE = [0, 2, 5, 9, 15, 25];
+  const MAXTIER = TIER_EMOJI.length - 1;
+  const RATIO = TIER_EMOJI.map((_, i) => Math.pow(1.27, i));
+
+  // 만5-6세 기준: 초반엔 작은 과일만 내려오다가 레벨이 오를수록
+  // 큰 과일도 섞여서 더 신중하게 쌓아야 함. 목표 점수도 꾸준히 늘어남.
+  const CONF = Array.from({ length: MAX_LEVEL }, (_, i) => {
+    const t = i / (MAX_LEVEL - 1);
+    return {
+      target: Math.round(16 + t * 64),
+      maxTier: i < 3 ? 1 : i < 6 ? 2 : 3,
+    };
+  });
+
+  let conf = CONF[0];
+  let lv = 1;
+  let raf = null;
+  let fruits = [];
+  let fx = [];
+  let score = 0;
+  let aimX = 0;
+  let nextTier = 0;
+  let dropCooldownUntil = 0;
+  let overflowTimer = 0;
+  let lastCheck = 0;
+  let over = false;
+  let uid = 0;
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = stage.clientWidth * dpr;
+    canvas.height = stage.clientHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', () => { if (current === 'melon') resize(); });
+
+  function stop() {
+    cancelAnimationFrame(raf);
+    raf = null;
+  }
+  stoppers.melon = stop;
+
+  function geom() {
+    const W = stage.clientWidth, H = stage.clientHeight;
+    const pad = W * 0.06;
+    const wallL = pad, wallR = W - pad;
+    const baseR = (wallR - wallL) * 0.1;
+    const radii = RATIO.map((r) => baseR * r);
+    return { W, H, wallL, wallR, floorY: H - H * 0.03, lineY: H * 0.26, aimY: H * 0.1, radii };
+  }
+
+  function pickTier() { return Math.floor(Math.random() * (conf.maxTier + 1)); }
+
+  function pointerX(e) {
+    const r = stage.getBoundingClientRect();
+    return e.clientX - r.left;
+  }
+  function moveAim(e) {
+    if (over) return;
+    const { wallL, wallR, radii } = geom();
+    const r = radii[nextTier];
+    aimX = Math.max(wallL + r, Math.min(wallR - r, pointerX(e)));
+    $('#melonHint').style.display = 'none';
+  }
+  function dropFruit(ts) {
+    if (over || ts < dropCooldownUntil) return;
+    const { aimY } = geom();
+    fruits.push({ id: uid++, x: aimX, y: aimY, vx: 0, vy: 0, tier: nextTier, bornAt: ts });
+    sfx.tap();
+    dropCooldownUntil = ts + 300;
+    nextTier = pickTier();
+  }
+  stage.addEventListener('pointerdown', (e) => { moveAim(e); dropFruit(performance.now()); });
+  stage.addEventListener('pointermove', moveAim);
+
+  function updateHud() {
+    $('#melonScore').textContent = '⭐ ' + score;
+  }
+
+  function spawnFx(x, y, text) {
+    fx.push({ x, y, text, ttl: 30 });
+  }
+
+  function loop(ts) {
+    const { W, H, wallL, wallR, floorY, lineY, aimY, radii } = geom();
+
+    // 중력 + 이동
+    fruits.forEach((f) => {
+      f.vy = Math.min(14, f.vy + 0.5);
+      f.x += f.vx;
+      f.y += f.vy;
+      f.vx *= 0.995;
+    });
+
+    // 벽/바닥
+    fruits.forEach((f) => {
+      const r = radii[f.tier];
+      if (f.x - r < wallL) { f.x = wallL + r; f.vx = Math.abs(f.vx) * 0.25; }
+      if (f.x + r > wallR) { f.x = wallR - r; f.vx = -Math.abs(f.vx) * 0.25; }
+      if (f.y + r > floorY) { f.y = floorY - r; f.vy = f.vy > 0 ? -f.vy * 0.12 : f.vy * 0.4; f.vx *= 0.9; }
+    });
+
+    // 충돌/합체 (여러 번 반복해서 안정화)
+    const toRemove = new Set();
+    const toAdd = [];
+    for (let pass = 0; pass < 3; pass++) {
+      for (let i = 0; i < fruits.length; i++) {
+        const a = fruits[i];
+        if (toRemove.has(a.id)) continue;
+        for (let j = i + 1; j < fruits.length; j++) {
+          const b = fruits[j];
+          if (toRemove.has(b.id)) continue;
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const dist = Math.hypot(dx, dy) || 0.0001;
+          const minDist = radii[a.tier] + radii[b.tier];
+          if (dist >= minDist) continue;
+          if (a.tier === b.tier && pass === 0 && ts - Math.max(a.bornAt, b.bornAt) > 60) {
+            toRemove.add(a.id); toRemove.add(b.id);
+            const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+            if (a.tier >= MAXTIER) {
+              score += 60;
+              spawnFx(mx, my, '🎉+60');
+              sfx.win();
+              confetti(14);
+            } else {
+              const nt = a.tier + 1;
+              toAdd.push({ id: uid++, x: mx, y: my, vx: 0, vy: 0, tier: nt, bornAt: ts });
+              score += TIER_SCORE[nt];
+              spawnFx(mx, my, '+' + TIER_SCORE[nt]);
+              sfx.good();
+            }
+            continue;
+          }
+          const nx = dx / dist, ny = dy / dist;
+          const overlap = (minDist - dist) / 2;
+          const massA = radii[a.tier] ** 2, massB = radii[b.tier] ** 2;
+          const totalMass = massA + massB;
+          a.x -= nx * overlap * (massB / totalMass);
+          a.y -= ny * overlap * (massB / totalMass);
+          b.x += nx * overlap * (massA / totalMass);
+          b.y += ny * overlap * (massA / totalMass);
+        }
+      }
+    }
+    if (toRemove.size) fruits = fruits.filter((f) => !toRemove.has(f.id));
+    if (toAdd.length) fruits.push(...toAdd);
+
+    updateHud();
+    if (score >= conf.target) {
+      stop();
+      clearLevel('melon', lv);
+      saveBest('melon', score);
+      const p = praise();
+      celebrate(p);
+      showOverlay({
+        emoji: '🍉',
+        title: p,
+        text: `레벨 ${lv} 성공! ${conf.target}점을 모았어요!`,
+        win: true,
+        onRetry: () => games.melon(lv),
+        onNext: lv < MAX_LEVEL ? () => games.melon(lv + 1) : null,
+      });
+      return;
+    }
+
+    // 넘침 체크 (줄 위로 과일이 계속 쌓여있으면 실패)
+    const overflowing = fruits.some((f) => ts - f.bornAt > 1000 && f.y - radii[f.tier] < lineY);
+    overflowTimer = overflowing ? overflowTimer + (ts - lastCheck) : 0;
+    lastCheck = ts;
+    if (overflowTimer > 1200) {
+      over = true;
+      stop();
+      saveBest('melon', score);
+      sfx.bad();
+      showOverlay({
+        emoji: '🍉',
+        title: '가득 찼어요!',
+        text: `${score}점을 모았어요! 목표는 ${conf.target}점이야. 다시 해볼까?`,
+        onRetry: () => games.melon(lv),
+      });
+      return;
+    }
+
+    // 그리기
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#eafff2';
+    ctx.fillRect(wallL, 0, wallR - wallL, H);
+    ctx.strokeStyle = '#ff6b6b';
+    ctx.setLineDash([10, 8]);
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(wallL, lineY);
+    ctx.lineTo(wallR, lineY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = 'rgba(74,52,35,.3)';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(wallL, 0, wallR - wallL, H);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    fruits.forEach((f) => {
+      const r = radii[f.tier];
+      ctx.font = r * 1.5 + 'px sans-serif';
+      ctx.fillText(TIER_EMOJI[f.tier], f.x, f.y);
+    });
+
+    // 조준 중인 과일
+    if (!over) {
+      const r = radii[nextTier];
+      ctx.globalAlpha = 0.85;
+      ctx.font = r * 1.5 + 'px sans-serif';
+      ctx.fillText(TIER_EMOJI[nextTier], aimX, aimY);
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = 'rgba(74,52,35,.25)';
+      ctx.setLineDash([6, 8]);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(aimX, aimY + r);
+      ctx.lineTo(aimX, floorY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.font = '22px sans-serif';
+    ctx.fillStyle = '#ff5f6d';
+    fx.forEach((f) => { ctx.globalAlpha = Math.max(0, f.ttl / 30); ctx.fillText(f.text, f.x, f.y); });
+    ctx.globalAlpha = 1;
+    fx.forEach((f) => { f.y -= 0.7; f.ttl--; });
+    fx = fx.filter((f) => f.ttl > 0);
+
+    raf = requestAnimationFrame(loop);
+  }
+
+  games.melon = function startMelon(level = 1) {
+    stop();
+    resize();
+    lv = level;
+    conf = CONF[level - 1];
+    fruits = []; fx = [];
+    score = 0;
+    over = false;
+    overflowTimer = 0;
+    lastCheck = 0;
+    dropCooldownUntil = 0;
+    aimX = stage.clientWidth / 2;
+    nextTier = pickTier();
+    $('#melonLevel').textContent = '레벨 ' + level;
+    $('#melonTarget').textContent = '🎯 ' + conf.target;
+    $('#melonHint').style.display = '';
+    updateHud();
+    raf = requestAnimationFrame(loop);
   };
 })();
 
